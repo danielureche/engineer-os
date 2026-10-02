@@ -306,6 +306,11 @@ def main():
         "service",
         help="Kubernetes service name",
     )
+    
+    bg_parser.add_argument(
+        "service",
+        help="Kubernetes service name",
+    )
 
     args = parser.parse_args()
 
