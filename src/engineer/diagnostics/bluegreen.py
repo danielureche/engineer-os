@@ -42,6 +42,11 @@ class BlueGreenDiagnostic:
             service_name
         )
 
+        self._validate_destination_rule(
+            destination_rule,
+            service_name,
+        )
+
         virtual_service = self._find_virtual_service(
             service_name
         )
@@ -133,6 +138,67 @@ class BlueGreenDiagnostic:
                 return rule
 
         return None
+
+    def _validate_destination_rule(
+        self,
+        destination_rule,
+        service_name: str,
+    ) -> None:
+
+        if not destination_rule:
+            raise RuntimeError(
+                f"DestinationRule not found for service '{service_name}'"
+            )
+
+        subsets = (
+            destination_rule
+            .get("spec", {})
+            .get("subsets", [])
+        )
+
+        versions = set()
+
+        for subset in subsets:
+
+            name = subset.get("name")
+
+            labels = (
+                subset
+                .get("labels", {})
+            )
+
+            strategy = labels.get(
+                "version.strategy"
+            )
+
+            if name in ("blue", "green"):
+                versions.add(name)
+
+            if name == "blue" and strategy != "blue":
+                raise RuntimeError(
+                    "Invalid DestinationRule: "
+                    "blue subset must use "
+                    "version.strategy=blue"
+                )
+
+            if name == "green" and strategy != "green":
+                raise RuntimeError(
+                    "Invalid DestinationRule: "
+                    "green subset must use "
+                    "version.strategy=green"
+                )
+
+        missing = {"blue", "green"} - versions
+
+        if missing:
+            missing_versions = ", ".join(
+                sorted(missing)
+            )
+
+            raise RuntimeError(
+                "Invalid DestinationRule: "
+                f"missing subset(s): {missing_versions}"
+            )
 
     def _find_virtual_service(
         self,
