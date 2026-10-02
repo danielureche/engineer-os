@@ -10,6 +10,7 @@ from engineer.kubernetes.istio import IstioRepository
 from engineer.kubernetes.hpa import HPARepository
 
 from engineer.search.resources import ResourceSearcher
+from engineer.actions.resources import ResourceActions
 
 from engineer.diagnostics.bluegreen import (
     BlueGreenDiagnostic,
@@ -299,17 +300,97 @@ def find(keyword: str):
     if not results:
         print(f"No resources found for: {keyword}")
         return
+    
+    resource = select_resource(results)
+    
+    if resource is None:
+        return
 
-    print(f"\nSearch results for: {keyword}\n")
+    action = select_action(resource)
+    
+    print(
+        f"\nSelected action: {action}"
+    )
+        
+def select_resource(results):
 
-    for index, result in enumerate(results, start=1):
+    while True:
+
+        print("\nSearch results:\n")
+
+        for index, result in enumerate(
+            results,
+            start=1,
+        ):
+            print(
+                f"{index}. "
+                f"{result.resource_type:<18} "
+                f"{result.name}"
+            )
+
+        print("\n0. Exit")
+
+        selection = input(
+            "\nSelect resource [0-{}]: ".format(
+                len(results)
+            )
+        ).strip()
+
+        if selection == "0":
+            return None
+
+        if not selection.isdigit():
+            print("Invalid selection.")
+            continue
+
+        index = int(selection)
+
+        if index < 1 or index > len(results):
+            print("Invalid selection.")
+            continue
+
+        return results[index - 1]
+
+def select_action(resource):
+
+    actions = ResourceActions().get_actions(
+        resource
+    )
+
+    while True:
 
         print(
-            f"{index}. "
-            f"{result.resource_type:<18} "
-            f"{result.name}"
+            f"\nSelected: "
+            f"{resource.resource_type} "
+            f"{resource.name}\n"
         )
 
+        print("Available actions:\n")
+
+        for index, action in enumerate(
+            actions,
+            start=1,
+        ):
+            print(f"{index}. {action}")
+
+        selection = input(
+            "\nSelect action [1-{}]: ".format(
+                len(actions)
+            )
+        ).strip()
+
+        if not selection.isdigit():
+            print("Invalid selection.")
+            continue
+
+        index = int(selection)
+
+        if index < 1 or index > len(actions):
+            print("Invalid selection.")
+            continue
+
+        return actions[index - 1]
+    
 def main():
 
     parser = argparse.ArgumentParser(
