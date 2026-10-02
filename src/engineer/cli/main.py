@@ -308,9 +308,16 @@ def find(keyword: str):
 
     action = select_action(resource)
     
-    print(
-        f"\nSelected action: {action}"
-    )
+    if action == "Blue/Green status":
+
+        if resource.resource_type != "Service":
+            print(
+                "Blue/Green status is only available "
+                "for Services."
+            )
+            return
+
+        bg(resource.name)
         
 def select_resource(results):
 
