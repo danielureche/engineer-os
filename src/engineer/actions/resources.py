@@ -41,3 +41,27 @@ class ResourceActions:
             ]
 
         return ["Back"]
+    
+    def get_resource_yaml(
+        self,
+        resource,
+    ):
+        resource_map = {
+            "Service": "service",
+            "Deployment": "deployment",
+            "DestinationRule": "destinationrule",
+            "VirtualService": "virtualservice",
+            "HPA": "horizontalpodautoscaler",
+        }
+
+        kubernetes_resource = resource_map.get(
+            resource.resource_type
+        )
+
+        if not kubernetes_resource:
+            raise RuntimeError(
+                f"Unsupported resource type: "
+                f"{resource.resource_type}"
+            )
+
+        return kubernetes_resource

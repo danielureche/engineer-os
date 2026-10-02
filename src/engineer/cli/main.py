@@ -11,6 +11,7 @@ from engineer.kubernetes.hpa import HPARepository
 
 from engineer.search.resources import ResourceSearcher
 from engineer.actions.resources import ResourceActions
+from engineer.actions.yaml import ResourceYaml
 
 from engineer.diagnostics.bluegreen import (
     BlueGreenDiagnostic,
@@ -318,6 +319,18 @@ def find(keyword: str):
             return
 
         bg(resource.name)
+        
+    if action == "View YAML":
+
+        client = KubernetesClient()
+
+        yaml_viewer = ResourceYaml(client)
+
+        yaml_content = yaml_viewer.get(
+            resource
+        )
+
+        print("\n" + yaml_content)
         
 def select_resource(results):
 

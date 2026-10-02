@@ -47,3 +47,32 @@ class KubernetesClient:
         data = self.get(resource)
 
         return data.get("items", [])
+    
+    def get_yaml(
+        self,
+        resource: str,
+        name: str,
+    ) -> str:
+
+        command = [
+            "kubectl",
+            "get",
+            resource,
+            name,
+            "-o",
+            "yaml",
+        ]
+
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        if result.returncode != 0:
+            raise RuntimeError(
+                result.stderr.strip()
+            )
+
+        return result.stdout
