@@ -9,6 +9,8 @@ from engineer.kubernetes.deployments import DeploymentRepository
 from engineer.kubernetes.istio import IstioRepository
 from engineer.kubernetes.hpa import HPARepository
 
+from engineer.search.resources import ResourceSearcher
+
 from engineer.diagnostics.bluegreen import (
     BlueGreenDiagnostic,
 )
@@ -33,6 +35,15 @@ def create_diagnostic() -> BlueGreenDiagnostic:
         hpa=hpa,
     )
 
+def create_searcher():
+
+    client = KubernetesClient()
+
+    return ResourceSearcher(
+        services=ServiceRepository(client),
+        deployments=DeploymentRepository(client),
+        istio=IstioRepository(client),
+    )
 
 def diagnose(service: str):
 
@@ -277,7 +288,27 @@ def bg(service: str):
         )
 
     console.print()
-    
+
+def find(keyword: str):
+
+    searcher = create_searcher()
+
+    results = searcher.search(keyword)
+
+    if not results:
+        print(f"No resources found for: {keyword}")
+        return
+
+    print(f"\nSearch results for: {keyword}\n")
+
+    for index, result in enumerate(results, start=1):
+
+        print(
+            f"{index}. "
+            f"{result.resource_type:<18} "
+            f"{result.name}"
+        )
+
 def main():
 
     parser = argparse.ArgumentParser(
@@ -311,6 +342,16 @@ def main():
         "service",
         help="Kubernetes service name",
     )
+    
+    find_parser = subparsers.add_parser(
+        "find",
+        help="Search Kubernetes resources",
+    )
+
+    find_parser.add_argument(
+        "keyword",
+        help="Keyword to search",
+    )
 
     args = parser.parse_args()
 
@@ -320,6 +361,10 @@ def main():
 
     if args.command == "bg":
         bg(args.service)
+        return
+
+    if args.command == "find":
+        find(args.keyword)
         return
 
     parser.print_help()
