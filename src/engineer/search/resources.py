@@ -15,10 +15,12 @@ class ResourceSearcher:
         services,
         deployments,
         istio,
+        hpa
     ):
         self.services = services
         self.deployments = deployments
         self.istio = istio
+        self.hpa = hpa
 
     def search(
         self,
@@ -44,6 +46,10 @@ class ResourceSearcher:
         results.extend(
             self._search_virtual_services(keyword)
         )
+        
+        results.extend(
+            self._search_hpas(keyword)
+        )   
 
         return results
     
@@ -156,6 +162,38 @@ class ResourceSearcher:
                 results.append(
                     SearchResult(
                         resource_type="VirtualService",
+                        name=name,
+                    )
+                )
+
+        return results
+    
+    def _search_hpas(self, keyword):
+
+        results = []
+
+        for hpa in self.hpa.list():
+
+            name = (
+                hpa
+                .get("metadata", {})
+                .get("name", "")
+            )
+
+            target = (
+                hpa
+                .get("spec", {})
+                .get("scaleTargetRef", {})
+                .get("name", "")
+            )
+
+            if (
+                keyword in name.lower()
+                or keyword in target.lower()
+            ):
+                results.append(
+                    SearchResult(
+                        resource_type="HPA",
                         name=name,
                     )
                 )

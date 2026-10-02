@@ -43,6 +43,7 @@ def create_searcher():
         services=ServiceRepository(client),
         deployments=DeploymentRepository(client),
         istio=IstioRepository(client),
+        hpa=HPARepository(client),
     )
 
 def diagnose(service: str):
