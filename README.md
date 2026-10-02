@@ -11,12 +11,19 @@ Esta guía detalla el proceso de instalación, verificación previa del contexto
    python -m venv .venv
    ```
 
-2. **Activar e instalar el proyecto en modo editable:**
+2. **Crear el entorno virtual:**
    ```bash
-   pip install -e .
+   source .venv/bin/activate
    ```
 
-3. **Verificar los paquetes instalados:**
+3. **Instalar el proyecto en modo editable:**
+   ```bash
+   pip install -e .
+
+   pip install -e ".[dev]"
+   ```
+
+4. **Verificar los paquetes instalados:**
    ```bash
    pip list
    ```
